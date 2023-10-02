@@ -1,7 +1,5 @@
 
-from kivy.lang import Builder
 from kivy.properties import StringProperty, BooleanProperty
-from kivy.uix.image import Image
 
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.screen import MDScreen

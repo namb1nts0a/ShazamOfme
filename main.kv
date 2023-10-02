@@ -119,16 +119,112 @@
         on_close: print("on_close")
         left_action_items: [["menu", lambda x: self.open()]]
         title: app.title
-        header_text: ""
+        header_text: "hello world"
 
         MDBackdropBackLayer:
             MyBackdropBackLayer:
                 id: backlayer
 
         MDBackdropFrontLayer:
-            MyBackdropFrontLayer:
-                backdrop: backdrop
-                backlayer: backlayer
+            ScreenManager:
+                id: manager
+                MDScreen:
+                    name: "one"
+
+                    ScrollView:
+                        do_scroll_x: False
+
+                        MDGridLayout:
+                            cols: 2
+                            row_default_height: (self.width - self.cols*self.spacing[0]) / self.cols
+                            row_force_default: True
+                            adaptive_height: True
+                            padding: dp(4), dp(4)
+                            spacing: dp(4)
+
+                            MDSmartTile:
+                                source: "assets/images/1.jpg"
+                                MDIconButton:
+                                    icon: "heart-outline"
+                                    theme_icon_color: "Custom"
+                                    icon_color: 0, 20, 0, 1
+                                    pos_hint: {"center_y": .5}
+                                    on_release: self.icon = "heart" if self.icon == "heart-outline" else "heart-outline"
+                                MDLabel:
+                                    text: "raviny telo"
+                                    color: "white"
+
+                            MDSmartTile:
+                                source: "assets/images/2.jpg"
+                                MDIconButton:
+                                    icon: "heart-outline"
+                                    theme_icon_color: "Custom"
+                                    icon_color: 0, 20, 0, 1
+                                    pos_hint: {"center_y": .5}
+                                    on_release: self.icon = "heart" if self.icon == "heart-outline" else "heart-outline"
+                                MDLabel:
+                                    text: "hey mommie i have OCB"
+                                    color: "white"
+                                    
+                            MDSmartTile:
+                                source: "assets/images/3.jpg"
+                                MDIconButton:
+                                    icon: "heart-outline"
+                                    theme_icon_color: "Custom"
+                                    icon_color: 0, 20, 0, 1
+                                    pos_hint: {"center_y": .5}
+                                    on_release: self.icon = "heart" if self.icon == "heart-outline" else "heart-outline"
+                                MDLabel:
+                                    text: "how are you feeling today"
+                                    color: "white"
+
+                            MDSmartTile:
+                                source: "assets/images/4.jpg"
+                                MDIconButton:
+                                    icon: "heart-outline"
+                                    theme_icon_color: "Custom"
+                                    icon_color: 0, 20, 0, 1
+                                    pos_hint: {"center_y": .5}
+                                    on_release: self.icon = "heart" if self.icon == "heart-outline" else "heart-outline"
+                                MDLabel:
+                                    text: "rarany mbola maniry"
+                                    color: "white"
+
+                            MDSmartTile:
+                                source: "assets/images/5.jpg"
+                                MDIconButton:
+                                    icon: "heart-outline"
+                                    theme_icon_color: "Custom"
+                                    icon_color: 0, 20, 0, 1
+                                    pos_hint: {"center_y": .5}
+                                    on_release: self.icon = "heart" if self.icon == "heart-outline" else "heart-outline"
+                                MDLabel:
+                                    text: "Tsy mifoka news pr"
+                                    color: "white"
+
+                            MDSmartTile:
+                                source: "assets/images/6.jpg"
+                                MDIconButton:
+                                    icon: "heart-outline"
+                                    theme_icon_color: "Custom"
+                                    icon_color: 0, 20, 0, 1
+                                    pos_hint: {"center_y": .5}
+                                    on_release: self.icon = "heart" if self.icon == "heart-outline" else "heart-outline"
+                                MDLabel:
+                                    text: "Tsara karakara"
+                                    color: "white"
+
+                            MDSmartTile:
+                                source: "assets/images/7.jpeg"
+                                MDIconButton:
+                                    icon: "heart-outline"
+                                    theme_icon_color: "Custom"
+                                    icon_color: 0, 20, 0, 1
+                                    pos_hint: {"center_y": .5}
+                                    on_release: self.icon = "heart" if self.icon == "heart-outline" else "heart-outline"
+                                MDLabel:
+                                    text: "..."
+                                    color: "white"
 
     Screen:
         MDFloatingActionButtonSpeedDial:
