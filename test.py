@@ -18,16 +18,9 @@ MDBoxLayout:
     ScreenManager:
         id: manager
 
+        
         MDScreen:
             name: "one"
-
-            MDRaisedButton:
-                pos_hint: {"center_x": .5, "center_y": .55}
-                on_release: manager.current = "two"
-                text: "Open Grid"
-
-        MDScreen:
-            name: "two"
 
             ScrollView:
                 do_scroll_x: False
