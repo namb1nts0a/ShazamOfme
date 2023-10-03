@@ -1,11 +1,14 @@
 
-from kivy.properties import StringProperty, BooleanProperty
+from kivy.properties import StringProperty, BooleanProperty, DictProperty
 
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.screen import MDScreen
 from kivymd.app import MDApp
 from kivymd.theming import ThemableBehavior
 
+
+class CameraScreen(MDScreen):
+    pass
 
 
 class MainBackdrop(MDScreen):
@@ -27,18 +30,32 @@ class ItemBackdropBackLayer(ThemableBehavior, MDBoxLayout):
 
 
 class MainApp(MDApp):
-    data = {
-            'Camera': 'camera',
-            'Gallery': 'image-multiple',
-        }
+    data = DictProperty()
+    
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.title = "Shazam of me"
-        self.theme_cls.primary_palette = "Blue"
         
-
     def build(self):
-        self.root = MainBackdrop()
+        self.theme_cls.primary_palette = "Blue"
+        self.data = {
+            'Camera': [
+                'camera',
+                'on_press', lambda x:print("camera"),
+                'on_release', lambda x: self.callback(x)
+                ],
+
+            'Gallery': [
+                'image-multiple'
+                ],
+        }
+        # self.root = MainBackdrop()
+
+    def callback(self, button):
+        if button.icon == "camera":
+            self.root.current = "camera"  # Naviguer vers la nouvelle fenêtre
+        elif button.icon == "image-multiple":
+            print("galery ee")
 
 
 if __name__ == "__main__":

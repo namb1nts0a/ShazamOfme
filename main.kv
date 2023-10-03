@@ -110,6 +110,20 @@
                     text: "Music"
 
 
+MDScreenManager:
+    MainBackdrop:
+    CameraScreen:
+
+<CameraScreen>:
+    name: "camera"
+    MDScreen:
+        BoxLayout:
+            MDLabel:
+                text: "camera screen"
+                halign: "center"
+                valign: "middle"
+
+
 # Usage main of MDBackdrop.
 <MainBackdrop>
 
@@ -226,7 +240,8 @@
                                     text: "..."
                                     color: "white"
 
-    Screen:
+    MDScreen:
         MDFloatingActionButtonSpeedDial:
+            id: seed_dial
             data: app.data
             root_button_anim: True
