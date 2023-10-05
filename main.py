@@ -1,6 +1,6 @@
 
 from kivy.properties import StringProperty, BooleanProperty, DictProperty
-
+from camera4kivy.preview import Preview
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.screen import MDScreen
 from kivymd.app import MDApp
@@ -52,8 +52,13 @@ class MainApp(MDApp):
         # self.root = MainBackdrop()
 
     def callback(self, button):
-        if button.icon == "camera":
-            self.root.current = "camera"  # Naviguer vers la nouvelle fenêtre
+        camera_screen = self.root.get_screen('camera')
+        if camera_screen:
+            camera_preview = camera_screen.ids.camera_preview
+            if button.icon == "camera":
+                self.root.current = "camera"
+                camera_preview.connect_camera(enable_analyze_pixels=True)
+                camera_preview.select_camera('0')  # Naviguer vers la nouvelle fenêtre
         elif button.icon == "image-multiple":
             print("galery ee")
 

@@ -4,6 +4,8 @@ from kivymd.uix.screen import MDScreen
 from kivymd.theming import ThemableBehavior
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.app import MDApp
+from camera4kivy.preview import Preview
+from kivy.uix.button import Button
 
 KV = '''
 #:import NoTransition kivy.uix.screenmanager.NoTransition
@@ -123,12 +125,12 @@ MDScreenManager:
 
 <CameraScreen>:
     name: "camera"
-    MDScreen:
-        BoxLayout:
-            MDLabel:
-                text: "Camera Screen"
-                halign: "center"
-                valign: "middle"
+    BoxLayout:
+        orientation: 'vertical'
+        Preview:
+            id: camera_preview
+    
+                
 
 <MainScreen>:
     
@@ -219,6 +221,13 @@ MDScreenManager:
 
 class CameraScreen(MDScreen):
     pass
+    # cam = Preview()
+    # cam.connect_camera(enable_analyze_pixels=True)
+    # cam.select_camera('0')
+
+    # def toggle_camera(self):
+    #     pass#if self.cam.camera_connected:
+
 
 class MainScreen(MDScreen):
     pass
@@ -251,7 +260,7 @@ class Example(MDApp):
             'Camera': [
                 'camera',
                 "on_press", lambda x: print("pressed camera"),
-                "on_release", self.callback
+                "on_release", lambda x: self.callback(x)
             ],
             'Gallery': [
                 'image-multiple',
@@ -263,10 +272,19 @@ class Example(MDApp):
         return Builder.load_string(KV)
 
     def callback(self, button):
-        if button.icon == "camera":
-            self.root.current = "camera"  # Naviguer vers la nouvelle fenêtre
+        camera_screen = self.root.get_screen('camera')
+        if camera_screen:
+            camera_preview = camera_screen.ids.camera_preview
+        
+            if button.icon == "camera":
+                self.root.current = "camera"
+                # camera_preview = self.root.ids.camera_preview
+                camera_preview.connect_camera(enable_analyze_pixels=True)
+                camera_preview.select_camera('0')
+            
         elif button.icon == "image-multiple":
             print("galery ee")
+        
 
 if __name__ == "__main__":
     Example().run()
