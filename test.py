@@ -1,290 +1,107 @@
-from kivy.lang import Builder
-from kivy.properties import DictProperty, StringProperty, BooleanProperty
-from kivymd.uix.screen import MDScreen
-from kivymd.theming import ThemableBehavior
-from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.app import MDApp
-from camera4kivy.preview import Preview
-from kivy.uix.button import Button
-
-KV = '''
-#:import NoTransition kivy.uix.screenmanager.NoTransition
-#:import Window kivy.core.window.Window
-#:import IconLeftWidget kivymd.uix.list.IconLeftWidget
+import face_recognition
+import os, sys
+import cv2
+import numpy as np
+import math
+import threading
+import time
 
 
-<ItemBackdropFrontLayer@TwoLineAvatarListItem>
-    icon: "android"
+def face_confidence(face_distance, face_match_threshold=0.6):
+    range = (1.0 - face_match_threshold)
+    linear_val = (1.0 - face_distance) / (range * 2.0)
 
-    IconLeftWidget:
-        icon: root.icon
+    if face_distance > face_match_threshold:
+        return str(round(linear_val * 100, 2)) + "%"
+    else:
+        value = (linear_val + ((1.0 - linear_val) * math.pow((linear_val - 0.5) * 2, 0.2))) * 100
+        return str(round(value, 2)) + "%"
 
-
-<ItemBackdropBackLayer>
-    adaptive_height: True
-    spacing: "10dp"
-    md_bg_color:
-        root.theme_cls.primary_dark \
-        if root.selected_item \
-        else root.theme_cls.primary_color
-
-    MDIconButton:
-        icon: root.icon
-        theme_text_color: "Custom"
-        text_color: (1, 1, 1, .5) if not root.selected_item else (1, 1, 1, 1)
-
-    MDLabel:
-        text: root.text
-        color: (1, 1, 1, .5) if not root.selected_item else (1, 1, 1, 1)
+def create_thread(target):
+    thread = threading.Thread(target=target)
+    thread.start()
+    thread.join()
 
 
-<ItemBackdropBackLayerOfSecondScreen@BoxLayout>
-    size_hint_y: None
-    height: "40dp"
-    spacing: "25dp"
-    text: ""
+class FaceRecognition:
 
-    MDCheckbox:
-        size_hint: None, None
-        size: "30dp", "30dp"
-        active: False or self.active
-        pos_hint: {"center_y": .5}
-        selected_color: 1, 1, 1, 1
+    face_locations = []
+    face_encodings = []
+    face_names = []
+    known_face_encodings = []
+    known_face_names = []
+    process_current_frame = True
 
-    MDLabel:
-        text: root.text
-        color: 1, 1, 1, .7
+    def __init__(self):
+        self.encode_faces()
 
+    def encode_faces(self):
+        for image in os.listdir('assets/faces'):
+            face_images = face_recognition.load_image_file(f"assets/faces/{image}")
+            face_encoding = face_recognition.face_encodings(face_images)[0]
 
-<ItemRoundBackdropBackLayerOfSecondScreen@BoxLayout>
-    size_hint_y: None
-    height: "40dp"
-    spacing: "25dp"
-    text: ""
+            self.known_face_encodings.append(face_encoding)
+            self.known_face_names.append(image)
 
-    MDCheckbox:
-        group: "size"
-        size_hint: None, None
-        size: "30dp", "30dp"
-        pos_hint: {"center_y": .5}
-        selected_color: 1, 1, 1, 1
+        print(self.known_face_names)
 
-    MDLabel:
-        text: root.text
-        color: 1, 1, 1, .7
+    def run_recognition(self):
+        video_capture = cv2.VideoCapture(0)
 
+        if not video_capture.isOpened():
+            sys.exit("video source not found...")
 
-<MyBackdropFrontLayer@ScrollView>
-    backdrop: None
-    backlayer: None
+        def face_recognition_thread():    
 
-    MDGridLayout:
-        adaptive_height: True
-        cols: 1
-        padding: "5dp"
+            while True:
+                ret, frame = video_capture.read()
+                time.sleep(0.001)
+                if self.process_current_frame:
+                    small_frame = cv2.resize(frame, (0, 0), None, 0.25, 0.25)
+                    rgb_small_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
 
+                    self.face_locations = face_recognition.face_locations(rgb_small_frame)
+                    self.face_encodings = face_recognition.face_encodings(rgb_small_frame, self.face_locations)
+
+                    self.face_names = []
+                    for face_encoding in self.face_encodings:
+                        matches = face_recognition.compare_faces(self.known_face_encodings, face_encoding)
+                        name = "Unknown"
+                        confidence = "Unknown"
+
+                        face_distances = face_recognition.face_distance(self.known_face_encodings, face_encoding)
+                        best_math_index = np.argmin(face_distances)
+
+                        if matches[best_math_index]:
+                            name = self.known_face_names[best_math_index]
+                            confidence = face_confidence(face_distances[best_math_index])
+
+                        self.face_names.append(f"{name} ({confidence})")
+
+                self.process_current_frame = not self.process_current_frame
+
+                for encodeFace, faceLoc in zip(self.face_encodings, self.face_locations):
+                    y1, x2, y2, x1 = faceLoc
+                    y1, x2, y2, x1 = y1*4, x2*4, y2*4, x1*4
+                    
+
+                    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
+                    cv2.rectangle(frame, (x1, y2 - 30), (x2, y2), (0, 0, 255), -1)
+                    cv2.putText(frame, name, (x1 + 6, y2 -6), cv2.FONT_HERSHEY_DUPLEX, 0.8, (255, 255, 255), 1)
+
+                cv2.imshow("face recognition", frame)
+
+                if cv2.waitKey(1) == ord("q"):
+                    break
+
+            video_capture.release()
+            cv2.destroyAllWindows()
         
+        # recognition_thread = threading.Thread(target=face_recognition_thread)
+        # recognition_thread.start()
+        create_thread(face_recognition_thread)
 
-<MyBackdropBackLayer@ScreenManager>
-    transition: NoTransition()
-
-    MDScreen:
-        name: "one screen"
-
-        ScrollView
-
-            MDGridLayout:
-                adaptive_height: True
-                cols: 1
-                padding: "5dp"
-
-                ItemBackdropBackLayer:
-                    icon: "theater"
-                    text: "TV & Home Theaters"
-
-                ItemBackdropBackLayer:
-                    icon: "camera-plus-outline"
-                    text: "Camera and Camcorders"
-                ItemBackdropBackLayer:
-                    icon: "speaker"
-                    text: "Speakers"
-
-                ItemBackdropBackLayer:
-                    icon: "movie-outline"
-                    text: "Movies"
-                ItemBackdropBackLayer:
-                    icon: "gamepad-variant-outline"
-                    text: "Games"
-                ItemBackdropBackLayer:
-                    icon: "music-circle-outline"
-                    text: "Music"
-
-MDScreenManager:
-    MainScreen:
-    CameraScreen:
-
-<CameraScreen>:
-    name: "camera"
-    BoxLayout:
-        orientation: 'vertical'
-        Preview:
-            id: camera_preview
-    
-                
-
-<MainScreen>:
-    
-
-    MDBackdrop:
-        id: backdrop
-        on_open: print("on_open")
-        on_close: print("on_close")
-        left_action_items: [["menu", lambda x: self.open()]]
-        title: app.title
-        header_text: "hello world"
-
-        MDBackdropBackLayer:
-            MyBackdropBackLayer:
-                id: backlayer
-
-        MDBackdropFrontLayer:
-            ScreenManager:
-                id: manager
-                MDScreen:
-                    name: "one"
-
-                    ScrollView:
-                        do_scroll_x: False
-
-                        MDGridLayout:
-                            cols: 2
-                            row_default_height: (self.width - self.cols*self.spacing[0]) / self.cols
-                            row_force_default: True
-                            adaptive_height: True
-                            padding: dp(4), dp(4)
-                            spacing: dp(4)
-
-                            MDSmartTile:
-                                source: "assets/images/1.jpg"
-                                MDIconButton:
-                                    icon: "heart-outline"
-                                    theme_icon_color: "Custom"
-                                    icon_color: 0, 20, 0, 1
-                                    pos_hint: {"center_y": .5}
-                                    on_release: self.icon = "heart" if self.icon == "heart-outline" else "heart-outline"
-                                MDLabel:
-                                    text: "raviny telo"
-                                    color: "white"
-
-                            MDSmartTile:
-                                source: "assets/images/2.jpg"
-                                MDIconButton:
-                                    icon: "heart-outline"
-                                    theme_icon_color: "Custom"
-                                    icon_color: 0, 20, 0, 1
-                                    pos_hint: {"center_y": .5}
-                                    on_release: self.icon = "heart" if self.icon == "heart-outline" else "heart-outline"
-                                MDLabel:
-                                    text: "hey mommie i have OCB"
-                                    color: "white"
-                                    
-                            MDSmartTile:
-                                source: "assets/images/3.jpg"
-                                MDIconButton:
-                                    icon: "heart-outline"
-                                    theme_icon_color: "Custom"
-                                    icon_color: 0, 20, 0, 1
-                                    pos_hint: {"center_y": .5}
-                                    on_release: self.icon = "heart" if self.icon == "heart-outline" else "heart-outline"
-                                MDLabel:
-                                    text: "how are you feeling today"
-                                    color: "white"
-
-                            MDSmartTile:
-                                source: "assets/images/4.jpg"
-                                MDIconButton:
-                                    icon: "heart-outline"
-                                    theme_icon_color: "Custom"
-                                    icon_color: 0, 20, 0, 1
-                                    pos_hint: {"center_y": .5}
-                                    on_release: self.icon = "heart" if self.icon == "heart-outline" else "heart-outline"
-                                MDLabel:
-                                    text: "rarany mbola maniry"
-                                    color: "white"
-    MDScreen:
-        MDFloatingActionButtonSpeedDial:
-            id: speed_dial
-            data: app.data
-            root_button_anim: True
-            hint_animation: True
-'''
-
-class CameraScreen(MDScreen):
-    pass
-    # cam = Preview()
-    # cam.connect_camera(enable_analyze_pixels=True)
-    # cam.select_camera('0')
-
-    # def toggle_camera(self):
-    #     pass#if self.cam.camera_connected:
-
-
-class MainScreen(MDScreen):
-    pass
-
-class ItemBackdropBackLayer(ThemableBehavior, MDBoxLayout):
-    icon = StringProperty("android")
-    text = StringProperty()
-    selected_item = BooleanProperty(False)
-
-    def on_touch_down(self, touch):
-        if self.collide_point(touch.x, touch.y):
-            for item in self.parent.children:
-                if item.selected_item:
-                    item.selected_item = False
-            self.selected_item = True
-        return super().on_touch_down(touch)
-
-class Example(MDApp):
-    data = DictProperty()
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.title = "Shazam of me"
-        # self.theme_cls.primary_palette = "Blue"
-
-    def build(self):
-        # self.theme_cls.theme_style = "Dark"
-        self.theme_cls.primary_palette = "Orange"
-        self.data = {
-            'Camera': [
-                'camera',
-                "on_press", lambda x: print("pressed camera"),
-                "on_release", lambda x: self.callback(x)
-            ],
-            'Gallery': [
-                'image-multiple',
-                "on_press", lambda x: print("pressed gallery"),
-                "on_release", lambda x: self.callback
-            ],
-        }
-        # self.root = CameraScreen()
-        return Builder.load_string(KV)
-
-    def callback(self, button):
-        camera_screen = self.root.get_screen('camera')
-        if camera_screen:
-            camera_preview = camera_screen.ids.camera_preview
-        
-            if button.icon == "camera":
-                self.root.current = "camera"
-                # camera_preview = self.root.ids.camera_preview
-                camera_preview.connect_camera(enable_analyze_pixels=True)
-                camera_preview.select_camera('0')
-            
-        elif button.icon == "image-multiple":
-            print("galery ee")
-        
 
 if __name__ == "__main__":
-    Example().run()
+    fr = FaceRecognition()
+    fr.run_recognition()
