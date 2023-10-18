@@ -9,6 +9,8 @@ from kivy.clock import Clock
 from kivy.graphics.texture import Texture
 import cv2
 
+from faceRecognition import FaceRecognition
+
 
 class CameraScreen(MDScreen):
     pass
@@ -38,6 +40,7 @@ class MainApp(MDApp):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.title = "Shazam of me"
+        self.fr = FaceRecognition()
         
     def build(self):
         self.theme_cls.primary_palette = "Blue"
@@ -57,7 +60,7 @@ class MainApp(MDApp):
     def load_video(self, *args):
         ret, frame = self.capture.read()
         self.image_frame = frame
-        
+        self.fr.run_recognation(frame)
 
         buffer = cv2.flip(frame, 0).tobytes()
         texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
@@ -72,7 +75,7 @@ class MainApp(MDApp):
                 self.root.current = "camera"
                 self.image = camera_image
                 self.capture = cv2.VideoCapture(0)
-                Clock.schedule_interval(self.load_video, 1.0/30.0)
+                Clock.schedule_interval(self.load_video, 1.0/60.0)
         elif button.icon == "image-multiple":
             print("galery ee")
 

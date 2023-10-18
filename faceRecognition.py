@@ -56,19 +56,3 @@ class FaceRecognition:
             cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
             cv2.rectangle(frame, (x1, y2 - 30), (x2, y2), (0, 255, 0), -1)
             cv2.putText(frame, self.name, (x1 + 6, y2 - 6), cv2.FONT_HERSHEY_DUPLEX, 0.8, (255, 255, 255),1)
-
-# fr = FaceRecognition()
-
-# video_capture = cv2.VideoCapture(0)
-# while True:
-#     ret, frame = video_capture.read()
-#     fr.run_recognation(frame)
-    
-
-#     cv2.imshow("face", frame)
-
-#     if cv2.waitKey(1) == ord("q"):
-#         break
-
-# video_capture.release()
-# cv2.destroyAllWindows()
