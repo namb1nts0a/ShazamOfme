@@ -1,10 +1,13 @@
 
 from kivy.properties import StringProperty, BooleanProperty, DictProperty
-from camera4kivy.preview import Preview
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.screen import MDScreen
 from kivymd.app import MDApp
 from kivymd.theming import ThemableBehavior
+from kivy.uix.image import Image
+from kivy.clock import Clock
+from kivy.graphics.texture import Texture
+import cv2
 
 
 class CameraScreen(MDScreen):
@@ -51,14 +54,25 @@ class MainApp(MDApp):
         }
         # self.root = MainBackdrop()
 
+    def load_video(self, *args):
+        ret, frame = self.capture.read()
+        self.image_frame = frame
+        
+
+        buffer = cv2.flip(frame, 0).tobytes()
+        texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
+        texture.blit_buffer(buffer, colorfmt='bgr', bufferfmt='ubyte')
+        self.image.texture = texture
+
     def callback(self, button):
         camera_screen = self.root.get_screen('camera')
         if camera_screen:
-            camera_preview = camera_screen.ids.camera_preview
+            camera_image = camera_screen.ids.camera_image
             if button.icon == "camera":
                 self.root.current = "camera"
-                camera_preview.connect_camera(enable_analyze_pixels=True)
-                camera_preview.select_camera('0')  # Naviguer vers la nouvelle fenêtre
+                self.image = camera_image
+                self.capture = cv2.VideoCapture(0)
+                Clock.schedule_interval(self.load_video, 1.0/30.0)
         elif button.icon == "image-multiple":
             print("galery ee")
 

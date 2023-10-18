@@ -1,107 +1,36 @@
-import face_recognition
-import os, sys
+# Fichier Python (main.py)
+from kivy.lang import Builder
+from kivymd.app import MDApp
+from kivy.uix.image import Image
+from kivy.graphics.texture import Texture
+from kivy.clock import Clock
 import cv2
-import numpy as np
-import math
-import threading
-import time
 
+KV = '''
+BoxLayout:
+    orientation: "vertical"
+    Image:
+        id: camera_image
+'''
 
-def face_confidence(face_distance, face_match_threshold=0.6):
-    range = (1.0 - face_match_threshold)
-    linear_val = (1.0 - face_distance) / (range * 2.0)
-
-    if face_distance > face_match_threshold:
-        return str(round(linear_val * 100, 2)) + "%"
-    else:
-        value = (linear_val + ((1.0 - linear_val) * math.pow((linear_val - 0.5) * 2, 0.2))) * 100
-        return str(round(value, 2)) + "%"
-
-def create_thread(target):
-    thread = threading.Thread(target=target)
-    thread.start()
-    thread.join()
-
-
-class FaceRecognition:
-
-    face_locations = []
-    face_encodings = []
-    face_names = []
-    known_face_encodings = []
-    known_face_names = []
-    process_current_frame = True
-
-    def __init__(self):
-        self.encode_faces()
-
-    def encode_faces(self):
-        for image in os.listdir('assets/faces'):
-            face_images = face_recognition.load_image_file(f"assets/faces/{image}")
-            face_encoding = face_recognition.face_encodings(face_images)[0]
-
-            self.known_face_encodings.append(face_encoding)
-            self.known_face_names.append(image)
-
-        print(self.known_face_names)
-
-    def run_recognition(self):
-        video_capture = cv2.VideoCapture(0)
-
-        if not video_capture.isOpened():
-            sys.exit("video source not found...")
-
-        def face_recognition_thread():    
-
-            while True:
-                ret, frame = video_capture.read()
-                time.sleep(0.001)
-                if self.process_current_frame:
-                    small_frame = cv2.resize(frame, (0, 0), None, 0.25, 0.25)
-                    rgb_small_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
-
-                    self.face_locations = face_recognition.face_locations(rgb_small_frame)
-                    self.face_encodings = face_recognition.face_encodings(rgb_small_frame, self.face_locations)
-
-                    self.face_names = []
-                    for face_encoding in self.face_encodings:
-                        matches = face_recognition.compare_faces(self.known_face_encodings, face_encoding)
-                        name = "Unknown"
-                        confidence = "Unknown"
-
-                        face_distances = face_recognition.face_distance(self.known_face_encodings, face_encoding)
-                        best_math_index = np.argmin(face_distances)
-
-                        if matches[best_math_index]:
-                            name = self.known_face_names[best_math_index]
-                            confidence = face_confidence(face_distances[best_math_index])
-
-                        self.face_names.append(f"{name} ({confidence})")
-
-                self.process_current_frame = not self.process_current_frame
-
-                for encodeFace, faceLoc in zip(self.face_encodings, self.face_locations):
-                    y1, x2, y2, x1 = faceLoc
-                    y1, x2, y2, x1 = y1*4, x2*4, y2*4, x1*4
-                    
-
-                    cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
-                    cv2.rectangle(frame, (x1, y2 - 30), (x2, y2), (0, 0, 255), -1)
-                    cv2.putText(frame, name, (x1 + 6, y2 -6), cv2.FONT_HERSHEY_DUPLEX, 0.8, (255, 255, 255), 1)
-
-                cv2.imshow("face recognition", frame)
-
-                if cv2.waitKey(1) == ord("q"):
-                    break
-
-            video_capture.release()
-            cv2.destroyAllWindows()
+class TestApp(MDApp):
+    def build(self):
+        self.root = Builder.load_string(KV)
+        self.image = self.root.ids.camera_image
         
-        # recognition_thread = threading.Thread(target=face_recognition_thread)
-        # recognition_thread.start()
-        create_thread(face_recognition_thread)
+        self.capture = cv2.VideoCapture(0)
+        Clock.schedule_interval(self.load_video, 1.0/30.0)
+        return self.root
 
+    def load_video(self, *args):
+        ret, frame = self.capture.read()
+        self.image_frame = frame
+        cv2.putText(self.image_frame, "text ici", (60, 60), cv2.FONT_HERSHEY_DUPLEX, 0.8, (255, 0, 0), 1)
+        
+        buffer = cv2.flip(frame, 0).tobytes()
+        texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
+        texture.blit_buffer(buffer, colorfmt='bgr', bufferfmt='ubyte')
+        self.image.texture = texture
 
 if __name__ == "__main__":
-    fr = FaceRecognition()
-    fr.run_recognition()
+    TestApp().run()
