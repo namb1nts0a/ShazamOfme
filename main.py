@@ -79,6 +79,13 @@ class MainApp(MDApp):
         elif button.icon == "image-multiple":
             print("galery ee")
 
+    def click(self):
+        self.root.current = "main_backdrop"
+        self.image = None
+        Clock.unschedule(self.load_video)
+        self.capture.release()
+        self.capture = None
+
 
 if __name__ == "__main__":
     MainApp().run()

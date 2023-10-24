@@ -122,10 +122,27 @@ MDScreenManager:
             Image:
                 id: camera_image
 
+            MDBottomNavigation:
+                id: panel
+
+                MDBottomNavigationItem:
+                    name: "return"
+                    text: "return"
+                    icon: "keyboard-return"
+
+                MDBottomNavigationItem:
+                    name: "home"
+                    text: "home"
+                    icon: "home"
+                    on_tab_press: app.click()
+                    
+
+                
+
 
 # Usage main of MDBackdrop.
 <MainBackdrop>
-
+    name: "main_backdrop"
     MDBackdrop:
         id: backdrop
         on_open: print("on_open")
