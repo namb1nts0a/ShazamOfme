@@ -9,7 +9,7 @@ class FaceRecognition:
     face_names = []
     known_face_encodings = []
     known_face_names = []
-    tolerance = 0.55
+    tolerance = 0.5
     process_current_frame = True
 
     def __init__(self):
@@ -53,6 +53,13 @@ class FaceRecognition:
             y1, x2, y2, x1 = faceLoc
             y1, x2, y2, x1 = y1*4, x2*4, y2*4, x1*4 
 
-            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-            cv2.rectangle(frame, (x1, y2 - 30), (x2, y2), (0, 255, 0), -1)
+            # if self.name != "Unknown":
+            #     color_cadre = (0, 255, 0)
+            # else:
+            #     color_cadre = (0, 0, 255)
+
+            color_cadre = (0, 255, 0) if self.name != "Unknown" else (0, 0, 255)
+                
+            cv2.rectangle(frame, (x1, y1), (x2, y2), color_cadre, 2)
+            cv2.rectangle(frame, (x1, y2 - 30), (x2, y2), color_cadre, -1)
             cv2.putText(frame, self.name, (x1 + 6, y2 - 6), cv2.FONT_HERSHEY_DUPLEX, 0.8, (255, 255, 255),1)
