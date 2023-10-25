@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import os
 
+
 class FaceRecognition:
     face_locations = []
     face_encodings = []
@@ -13,7 +14,6 @@ class FaceRecognition:
     process_current_frame = True
 
     def __init__(self):
-        # self.frame = frame
         self.encode_faces()
 
     def encode_faces(self):
@@ -52,12 +52,6 @@ class FaceRecognition:
         for encodeFace, faceLoc in zip(self.face_encodings, self.face_locations):
             y1, x2, y2, x1 = faceLoc
             y1, x2, y2, x1 = y1*4, x2*4, y2*4, x1*4 
-
-            # if self.name != "Unknown":
-            #     color_cadre = (0, 255, 0)
-            # else:
-            #     color_cadre = (0, 0, 255)
-
             color_cadre = (0, 255, 0) if self.name != "Unknown" else (0, 0, 255)
                 
             cv2.rectangle(frame, (x1, y1), (x2, y2), color_cadre, 2)

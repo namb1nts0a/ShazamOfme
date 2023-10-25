@@ -1,4 +1,3 @@
-
 from kivy.properties import StringProperty, BooleanProperty, DictProperty
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.screen import MDScreen
@@ -40,6 +39,7 @@ class MainApp(MDApp):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.title = "Shazam of me"
+        self.icon = "assets/images/icon.ico"
         self.fr = FaceRecognition()
         
     def build(self):
@@ -55,7 +55,6 @@ class MainApp(MDApp):
                 'image-multiple'
                 ],
         }
-        # self.root = MainBackdrop()
 
     def load_video(self, *args):
         ret, frame = self.capture.read()
